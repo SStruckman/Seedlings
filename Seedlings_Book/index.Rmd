@@ -1,0 +1,16 @@
+--- 
+title: "Pinus Seedlings in Cedar Breaks National Monument"
+author: "Soren Struckman"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+documentclass: book
+bibliography: [book.bib, packages.bib]
+biblio-style: apalike
+link-citations: yes
+description: "This book documents some exploration of a dataset on Pinus seedlings in the Utah Forest Dynamics plot in Cedar Breaks, UT."
+---
+
+# Background
+This project is an exploratory data analysis of _Pinus_ seedling environmental and spatial dynamics in the Utah Forest Dynamics Plot ([UFDP](http://www.ufdp.org)) in Cedar Breaks National Monument, UT. My aim is to identify any relationships (if any) that exist between seedling persistence and the biotic and abiotic conditions it is exposed to. I have at my disposal a fairly unique dataset containing two exhaustive censuses of _Pinus_ seedlings _in situ_ within a 15 ha area, comprising a 150-m elevational gradient and variable topographic and nutrient characteristics. The goal of this exploration is to document site characteristics that are correlated with seedling survival and density.
+
+The next phase of the project (should I get that far) will be to quantify spatial patterns in seedling occurrence and persistence, and then compare those to patterns of adult _Pinus_ in the plot. I am interested in how these patterns compare in their potential to demonstrate climate-driven range shifts in these long-lived high-elevation pines. A difference in the spatial distribution of adults and seedlings could be evidence that new individuals are establishing in microsites that are more similar to past conditions in the sites that the adults currently occupy, suggesting a range shift to more favorable habitat.

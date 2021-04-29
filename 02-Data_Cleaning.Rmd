@@ -5,8 +5,8 @@ date: "4/26/2021"
 output: html_document
 ---
 
-
-# Initialization
+# Data Cleaning
+## Initialization
 ```{r package_load2, message=F}
 library(tidyverse)
 ```
@@ -16,7 +16,7 @@ library(tidyverse)
 ```
 
 
-# Data Import
+## Data Import
 ```{r import2}
 ## Load tabular data
 
@@ -36,8 +36,8 @@ grid.poly = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Dat
 ```
 
 
-# Data Cleaning
-## Seedling
+## Data Cleaning
+### Seedling
 Let's make a new data.frame to store the clean data. This way, we can make changes to that without messing with the raw data at all.
 ```{r}
 seed = seed.raw
@@ -76,26 +76,26 @@ saplings = seed %>% filter(STEM_TAG %in% tmp$STEM_TAG)
 seed = seed %>% filter(STEM_TAG %notin% tmp$STEM_TAG)
 ```
 
-### Export
+#### Export
 ```{r, eval=FALSE}
 write.csv(saplings, paste0('./Data_clean/Sapling_clean_',format(Sys.time(), "%Y%m%d"),'.csv'))
 write.csv(seed, paste0('./Data_clean/Seedling_clean_',format(Sys.time(), "%Y%m%d"),'.csv'))
 ```
 
 
-## Mortality
+### Mortality
 A few of the saplings also have since died, so we should remove them from the mortality data. Other than that, this data is already pretty clean.
 ```{r}
 mort = mort.raw %>% filter(STEM_TAG %notin% tmp$STEM_TAG)
 ```
 
-### Export
+#### Export
 ```{r, eval=FALSE}
 write.csv(mort, paste0('./Data_clean/Mort_clean_',format(Sys.time(), "%Y%m%d"),'.csv'))
 ```
 
 
-# Grid Physical Data Derivation
+## Grid Physical Data Derivation
 ```{r}
 #add in UTM_Z from grid table...
 

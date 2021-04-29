@@ -1,13 +1,15 @@
 tab:nice-tab
 background
+data-structure
 data-description
 database-creation
 initialization
 import-data
 create-database
+data-cleaning
 initialization-1
 data-import
-data-cleaning
+data-cleaning-1
 seedling
 export
 mortality

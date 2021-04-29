@@ -5,8 +5,8 @@ date: "3/2/2021"
 output: html_document
 ---
 
-
-# Data Description
+# Data Structure
+## Data Description
 For this project, I will be using data collected on _Pinus_ seedlings within the Utah Forest Dynamics Plot ([UFDP](http://www.ufdp.org)) in Cedar Breaks National Monument, UT. The plot is home to a significant population of old-growth bristlecone pine (*Pinus longaeva*) and another high-elevation pine species, _Pinus flexilis_. I would like to investigate some potential relationships between the seedlings and their abiotic environments as well as spatial patterns among seedlings. 
 
 The 15 ha plot is set up on a 20-m grid and all _Pinus_ seedlings are mapped, tagged, and censused annually for mortality. The physical environment of this plot is also well-documented, with data to construct complete topographical and soil profiles at the level of the grid cell (referred to as "quadrats").
@@ -15,7 +15,7 @@ the data is contained in 4 tables simplified below:
 
 
 ```{r image, echo=FALSE, fig.align='center', out.width='75%'}
-knitr::include_graphics("./Documents/Database_structure.png")
+knitr::include_graphics("./Database_structure.png")
 ```
 
 * `Seedling` contains data on individual seedlings and their demographic data. It is organized with a composite primary key of STEM_TAG and CENSUS, and thus has multiple measurements for each individual seedling associated with a unique STEM_TAG. *NOTE: this is not the most efficient structure, but I am working within constraints of existing workflows that are set up this way.*
@@ -26,8 +26,8 @@ knitr::include_graphics("./Documents/Database_structure.png")
 The data presented here are a small subset of the entire data workflow of the plot, and there is an existing SQL database structure and regular updates to upstream data, so the database inherits some peculiarities as a result of removing the seedlings from the context of all the adult trees.
 
 
-# Database Creation
-## Initialization
+## Database Creation
+### Initialization
 ```{r package_load1, message=F}
 library(tidyverse)
 library(DBI)
@@ -35,7 +35,7 @@ library(RSQLite)
 ```
 
 
-## Import Data
+### Import Data
 ```{r import1}
 ## Load tabular data
 
@@ -55,7 +55,7 @@ grid.poly = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Dat
 ```
 
 
-## Create Database
+### Create Database
 Establishing a connection to a new SQLite database to house the datasets.
 ```{r connect, eval=FALSE}
 seedling.db = dbConnect(RSQLite::SQLite(), "./Data_raw/seedlings.db")

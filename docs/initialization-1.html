@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Section 3 Literature | Pinus Seedlings in Cedar Breaks National Monument</title>
+  <title>Section 4 Initialization | Raw Data Cleaning</title>
   <meta name="description" content="This book documents some exploration of a dataset on Pinus seedlings in the Utah Forest Dynamics plot in Cedar Breaks, UT." />
   <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Section 3 Literature | Pinus Seedlings in Cedar Breaks National Monument" />
+  <meta property="og:title" content="Section 4 Initialization | Raw Data Cleaning" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Section 3 Literature | Pinus Seedlings in Cedar Breaks National Monument" />
+  <meta name="twitter:title" content="Section 4 Initialization | Raw Data Cleaning" />
   
   <meta name="twitter:description" content="This book documents some exploration of a dataset on Pinus seedlings in the Utah Forest Dynamics plot in Cedar Breaks, UT." />
   
@@ -24,15 +24,14 @@
 <meta name="author" content="Soren Struckman" />
 
 
-<meta name="date" content="2021-03-08" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="data-structure.html"/>
-<link rel="next" href="methods.html"/>
+<link rel="prev" href="database-creation.html"/>
+<link rel="next" href="data-import.html"/>
 <script src="libs/header-attrs-2.6/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -134,30 +133,28 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <li class="divider"></li>
 <li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Background</a></li>
-<li class="chapter" data-level="2" data-path="data-structure.html"><a href="data-structure.html"><i class="fa fa-check"></i><b>2</b> Data Structure</a>
+<li class="chapter" data-level="2" data-path="data-description.html"><a href="data-description.html"><i class="fa fa-check"></i><b>2</b> Data Description</a></li>
+<li class="chapter" data-level="3" data-path="database-creation.html"><a href="database-creation.html"><i class="fa fa-check"></i><b>3</b> Database Creation</a>
 <ul>
-<li class="chapter" data-level="2.1" data-path="data-structure.html"><a href="data-structure.html#data-description"><i class="fa fa-check"></i><b>2.1</b> Data Description</a>
+<li class="chapter" data-level="3.1" data-path="database-creation.html"><a href="database-creation.html#initialization"><i class="fa fa-check"></i><b>3.1</b> Initialization</a></li>
+<li class="chapter" data-level="3.2" data-path="database-creation.html"><a href="database-creation.html#import-data"><i class="fa fa-check"></i><b>3.2</b> Import Data</a></li>
+<li class="chapter" data-level="3.3" data-path="database-creation.html"><a href="database-creation.html#create-database"><i class="fa fa-check"></i><b>3.3</b> Create Database</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="initialization-1.html"><a href="initialization-1.html"><i class="fa fa-check"></i><b>4</b> Initialization</a></li>
+<li class="chapter" data-level="5" data-path="data-import.html"><a href="data-import.html"><i class="fa fa-check"></i><b>5</b> Data Import</a></li>
+<li class="chapter" data-level="6" data-path="data-cleaning.html"><a href="data-cleaning.html"><i class="fa fa-check"></i><b>6</b> Data Cleaning</a>
 <ul>
-<li class="chapter" data-level="2.1.1" data-path="data-structure.html"><a href="data-structure.html#tabular-data"><i class="fa fa-check"></i><b>2.1.1</b> Tabular Data</a></li>
-<li class="chapter" data-level="2.1.2" data-path="data-structure.html"><a href="data-structure.html#raster-data"><i class="fa fa-check"></i><b>2.1.2</b> Raster Data</a></li>
-</ul></li>
-<li class="chapter" data-level="2.2" data-path="data-structure.html"><a href="data-structure.html#database-creation"><i class="fa fa-check"></i><b>2.2</b> Database Creation</a>
+<li class="chapter" data-level="6.1" data-path="data-cleaning.html"><a href="data-cleaning.html#seedling"><i class="fa fa-check"></i><b>6.1</b> Seedling</a>
 <ul>
-<li class="chapter" data-level="2.2.1" data-path="data-structure.html"><a href="data-structure.html#initialization"><i class="fa fa-check"></i><b>2.2.1</b> Initialization</a></li>
-<li class="chapter" data-level="2.2.2" data-path="data-structure.html"><a href="data-structure.html#import-data"><i class="fa fa-check"></i><b>2.2.2</b> Import Data</a></li>
-<li class="chapter" data-level="2.2.3" data-path="data-structure.html"><a href="data-structure.html#create-database"><i class="fa fa-check"></i><b>2.2.3</b> Create Database</a></li>
+<li class="chapter" data-level="6.1.1" data-path="data-cleaning.html"><a href="data-cleaning.html#export"><i class="fa fa-check"></i><b>6.1.1</b> Export</a></li>
 </ul></li>
-</ul></li>
-<li class="chapter" data-level="3" data-path="literature.html"><a href="literature.html"><i class="fa fa-check"></i><b>3</b> Literature</a></li>
-<li class="chapter" data-level="4" data-path="methods.html"><a href="methods.html"><i class="fa fa-check"></i><b>4</b> Methods</a></li>
-<li class="chapter" data-level="5" data-path="applications.html"><a href="applications.html"><i class="fa fa-check"></i><b>5</b> Applications</a>
+<li class="chapter" data-level="6.2" data-path="data-cleaning.html"><a href="data-cleaning.html#mortality"><i class="fa fa-check"></i><b>6.2</b> Mortality</a>
 <ul>
-<li class="chapter" data-level="5.1" data-path="applications.html"><a href="applications.html#example-one"><i class="fa fa-check"></i><b>5.1</b> Example one</a></li>
-<li class="chapter" data-level="5.2" data-path="applications.html"><a href="applications.html#example-two"><i class="fa fa-check"></i><b>5.2</b> Example two</a></li>
+<li class="chapter" data-level="6.2.1" data-path="data-cleaning.html"><a href="data-cleaning.html#export-1"><i class="fa fa-check"></i><b>6.2.1</b> Export</a></li>
 </ul></li>
-<li class="chapter" data-level="6" data-path="final-words.html"><a href="final-words.html"><i class="fa fa-check"></i><b>6</b> Final Words</a></li>
-<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
-<li class="chapter" data-level="7" data-path="intro.html"><a href="intro.html"><i class="fa fa-check"></i><b>7</b> Introduction</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="grid-physical-data-derivation.html"><a href="grid-physical-data-derivation.html"><i class="fa fa-check"></i><b>7</b> Grid Physical Data Derivation</a></li>
+<li class="chapter" data-level="8" data-path="intro.html"><a href="intro.html"><i class="fa fa-check"></i><b>8</b> Introduction</a></li>
 <li class="divider"></li>
 <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
 
@@ -170,7 +167,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Pinus Seedlings in Cedar Breaks National Monument</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Raw Data Cleaning</a>
           </h1>
         </div>
 
@@ -178,18 +175,18 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="literature" class="section level1" number="3">
-<h1><span class="header-section-number">Section 3</span> Literature</h1>
-<p>Here is a review of existing methods.</p>
-
+<div id="initialization-1" class="section level1" number="4">
+<h1><span class="header-section-number">Section 4</span> Initialization</h1>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="initialization-1.html#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="initialization-1.html#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="st">`</span><span class="at">%notin%</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">Negate</span>(<span class="st">`</span><span class="at">%in%</span><span class="st">`</span>)</span></code></pre></div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-<a href="data-structure.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="methods.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="database-creation.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="data-import.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

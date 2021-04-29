@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Raw Data Cleaning</title>
+  <title>Section 5 Data Import | Raw Data Cleaning</title>
   <meta name="description" content="This book documents some exploration of a dataset on Pinus seedlings in the Utah Forest Dynamics plot in Cedar Breaks, UT." />
   <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Raw Data Cleaning" />
+  <meta property="og:title" content="Section 5 Data Import | Raw Data Cleaning" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Raw Data Cleaning" />
+  <meta name="twitter:title" content="Section 5 Data Import | Raw Data Cleaning" />
   
   <meta name="twitter:description" content="This book documents some exploration of a dataset on Pinus seedlings in the Utah Forest Dynamics plot in Cedar Breaks, UT." />
   
@@ -30,8 +30,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-
-<link rel="next" href="data-description.html"/>
+<link rel="prev" href="initialization-1.html"/>
+<link rel="next" href="data-cleaning.html"/>
 <script src="libs/header-attrs-2.6/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -175,24 +175,31 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Raw Data Cleaning</h1>
-<p class="author"><em>Soren Struckman</em></p>
-<p class="date"><em>4/26/2021</em></p>
-</div>
-<div id="background" class="section level1" number="1">
-<h1><span class="header-section-number">Section 1</span> Background</h1>
-<p>This project is an exploratory data analysis of <em>Pinus</em> seedling environmental and spatial dynamics in the Utah Forest Dynamics Plot (<a href="http://www.ufdp.org">UFDP</a>) in Cedar Breaks National Monument, UT. My aim is to identify any relationships (if any) that exist between seedling persistence and the biotic and abiotic conditions it is exposed to. I have at my disposal a fairly unique dataset containing two exhaustive censuses of <em>Pinus</em> seedlings <em>in situ</em> within a 15 ha area, comprising a 150-m elevational gradient and variable topographic and nutrient characteristics. The goal of this exploration is to document site characteristics that are correlated with seedling survival and density.</p>
-<p>The next phase of the project (should I get that far) will be to quantify spatial patterns in seedling occurrence and persistence, and then compare those to patterns of adult <em>Pinus</em> in the plot. I am interested in how these patterns compare in their potential to demonstrate climate-driven range shifts in these long-lived high-elevation pines. A difference in the spatial distribution of adults and seedlings could be evidence that new individuals are establishing in microsites that are more similar to past conditions in the sites that the adults currently occupy, suggesting a range shift to more favorable habitat.</p>
-
+<div id="data-import" class="section level1" number="5">
+<h1><span class="header-section-number">Section 5</span> Data Import</h1>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="data-import.html#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Load tabular data</span></span>
+<span id="cb11-2"><a href="data-import.html#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="data-import.html#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Seedling table</span></span>
+<span id="cb11-4"><a href="data-import.html#cb11-4" aria-hidden="true" tabindex="-1"></a>seed.raw <span class="ot">=</span> <span class="fu">read.csv</span>(<span class="fu">paste0</span>(<span class="st">&#39;./Data_raw/&#39;</span>,<span class="fu">max</span>(<span class="fu">dir</span>(<span class="st">&#39;./Data_raw&#39;</span>)[<span class="fu">grepl</span>(<span class="fu">dir</span>(<span class="st">&#39;./Data_raw/&#39;</span>),<span class="at">pattern =</span> <span class="st">&#39;Seedling&#39;</span>)])),<span class="at">na.strings=</span><span class="fu">c</span>(<span class="st">&#39;NA&#39;</span>,<span class="st">&#39;NULL&#39;</span>))</span>
+<span id="cb11-5"><a href="data-import.html#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Mortality table</span></span>
+<span id="cb11-6"><a href="data-import.html#cb11-6" aria-hidden="true" tabindex="-1"></a>mort.raw <span class="ot">=</span> <span class="fu">read.csv</span>(<span class="fu">paste0</span>(<span class="st">&#39;./Data_raw/&#39;</span>,<span class="fu">max</span>(<span class="fu">dir</span>(<span class="st">&#39;./Data_raw&#39;</span>)[<span class="fu">grepl</span>(<span class="fu">dir</span>(<span class="st">&#39;./Data_raw/&#39;</span>),<span class="at">pattern =</span> <span class="st">&#39;Mort_&#39;</span>)])),<span class="at">na.strings=</span><span class="fu">c</span>(<span class="st">&#39;NA&#39;</span>,<span class="st">&#39;NULL&#39;</span>))</span>
+<span id="cb11-7"><a href="data-import.html#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">#Soil table</span></span>
+<span id="cb11-8"><a href="data-import.html#cb11-8" aria-hidden="true" tabindex="-1"></a>soil <span class="ot">=</span> <span class="fu">read.csv</span>(<span class="fu">paste0</span>(<span class="st">&#39;./Data_raw/&#39;</span>,<span class="fu">max</span>(<span class="fu">dir</span>(<span class="st">&#39;./Data_raw&#39;</span>)[<span class="fu">grepl</span>(<span class="fu">dir</span>(<span class="st">&#39;./Data_raw/&#39;</span>),<span class="at">pattern =</span> <span class="st">&#39;Soil&#39;</span>)])),<span class="at">na.strings=</span><span class="fu">c</span>(<span class="st">&#39;NA&#39;</span>,<span class="st">&#39;NULL&#39;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb11-9"><a href="data-import.html#cb11-9" aria-hidden="true" tabindex="-1"></a>       dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>SAMPLE_NUM) <span class="sc">%&gt;%</span></span>
+<span id="cb11-10"><a href="data-import.html#cb11-10" aria-hidden="true" tabindex="-1"></a>       <span class="fu">filter</span>(SAMPLE_ID <span class="sc">%notin%</span> <span class="fu">c</span>(<span class="st">&#39;P1&#39;</span>,<span class="st">&#39;P2&#39;</span>,<span class="st">&#39;P3&#39;</span>,<span class="st">&#39;P4&#39;</span>,<span class="st">&#39;P5&#39;</span>,<span class="st">&#39;P6&#39;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb11-11"><a href="data-import.html#cb11-11" aria-hidden="true" tabindex="-1"></a>       dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="st">`</span><span class="at">BOTTLE&amp;KCL</span><span class="st">`</span> <span class="ot">=</span> BOTTLE.KCL,</span>
+<span id="cb11-12"><a href="data-import.html#cb11-12" aria-hidden="true" tabindex="-1"></a>                     <span class="st">`</span><span class="at">BOTTLE&amp;KCL&amp;SOIL</span><span class="st">`</span> <span class="ot">=</span> BOTTLE.KCL.SOIL,</span>
+<span id="cb11-13"><a href="data-import.html#cb11-13" aria-hidden="true" tabindex="-1"></a>                     <span class="st">`</span><span class="at">DRY_SOIL&amp;PAN</span><span class="st">`</span> <span class="ot">=</span> DRY_SOIL.PAN)</span>
+<span id="cb11-14"><a href="data-import.html#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="co">#Grid table</span></span>
+<span id="cb11-15"><a href="data-import.html#cb11-15" aria-hidden="true" tabindex="-1"></a>grid.poly <span class="ot">=</span> <span class="fu">read.csv</span>(<span class="fu">paste0</span>(<span class="st">&#39;./Data_raw/&#39;</span>,<span class="fu">max</span>(<span class="fu">dir</span>(<span class="st">&#39;./Data_raw&#39;</span>)[<span class="fu">grepl</span>(<span class="fu">dir</span>(<span class="st">&#39;./Data_raw/&#39;</span>),<span class="at">pattern =</span> <span class="st">&#39;Grid_Poly&#39;</span>)])),<span class="at">na.strings=</span><span class="fu">c</span>(<span class="st">&#39;NA&#39;</span>,<span class="st">&#39;NULL&#39;</span>))</span></code></pre></div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="data-description.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="initialization-1.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="data-cleaning.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

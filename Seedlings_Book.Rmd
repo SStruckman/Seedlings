@@ -1,0 +1,436 @@
+--- 
+title: "Pinus Seedlings in Cedar Breaks National Monument"
+author: "Soren Struckman"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+documentclass: book
+bibliography: [book.bib, packages.bib]
+biblio-style: apalike
+link-citations: yes
+description: "This book documents some exploration of a dataset on Pinus seedlings in the Utah Forest Dynamics plot in Cedar Breaks, UT."
+---
+
+# Background
+This project is an exploratory data analysis of _Pinus_ seedling environmental and spatial dynamics in the Utah Forest Dynamics Plot ([UFDP](http://www.ufdp.org)) in Cedar Breaks National Monument, UT. My aim is to identify any relationships (if any) that exist between seedling persistence and the biotic and abiotic conditions it is exposed to. I have at my disposal a fairly unique dataset containing two exhaustive censuses of _Pinus_ seedlings _in situ_ within a 15 ha area, comprising a 150-m elevational gradient and variable topographic and nutrient characteristics. The goal of this exploration is to document site characteristics that are correlated with seedling survival and density.
+
+The next phase of the project (should I get that far) will be to quantify spatial patterns in seedling occurrence and persistence, and then compare those to patterns of adult _Pinus_ in the plot. I am interested in how these patterns compare in their potential to demonstrate climate-driven range shifts in these long-lived high-elevation pines. A difference in the spatial distribution of adults and seedlings could be evidence that new individuals are establishing in microsites that are more similar to past conditions in the sites that the adults currently occupy, suggesting a range shift to more favorable habitat.
+
+<!--chapter:end:index.Rmd-->
+
+---
+title: "Database Creation with `RSQLite`"
+author: "Soren Struckman"
+date: "3/2/2021"
+output: html_document
+---
+
+
+# Data Description
+For this project, I will be using data collected on _Pinus_ seedlings within the Utah Forest Dynamics Plot ([UFDP](http://www.ufdp.org)) in Cedar Breaks National Monument, UT. The plot is home to a significant population of old-growth bristlecone pine (*Pinus longaeva*) and another high-elevation pine species, _Pinus flexilis_. I would like to investigate some potential relationships between the seedlings and their abiotic environments as well as spatial patterns among seedlings. 
+
+The 15 ha plot is set up on a 20-m grid and all _Pinus_ seedlings are mapped, tagged, and censused annually for mortality. The physical environment of this plot is also well-documented, with data to construct complete topographical and soil profiles at the level of the grid cell (referred to as "quadrats").
+
+the data is contained in 4 tables simplified below:
+
+
+```{r image, echo=FALSE, fig.align='center', out.width='75%'}
+knitr::include_graphics("./Documents/Database_structure.png")
+```
+
+* `Seedling` contains data on individual seedlings and their demographic data. It is organized with a composite primary key of STEM_TAG and CENSUS, and thus has multiple measurements for each individual seedling associated with a unique STEM_TAG. *NOTE: this is not the most efficient structure, but I am working within constraints of existing workflows that are set up this way.*
+* `Mortality` contains measurement and mortality data associated with a seedling when it dies. It is uniquely identified by STEM_TAG and seedlings are only present in this table after they have died.
+* `Grid` contains positional/topographical data about each quadrat within the plot grid. It is uniquely identified by QUADRAT (grid_cell).
+* `Soil` contains data on individual soil chemical measurements from samples taken throughout the plot. It is uniquely identified by SAMPLE_ID and relates back to `Grid` by what QUADRAT the sample was taken in.
+
+The data presented here are a small subset of the entire data workflow of the plot, and there is an existing SQL database structure and regular updates to upstream data, so the database inherits some peculiarities as a result of removing the seedlings from the context of all the adult trees.
+
+
+# Database Creation
+## Initialization
+```{r package_load1, message=F}
+library(tidyverse)
+library(DBI)
+library(RSQLite)
+```
+
+
+## Import Data
+```{r import1}
+## Load tabular data
+
+#Seedling table
+seed.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Seedling')])),na.strings=c('NA','NULL'))
+#Mortality table
+mort.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Mort_')])),na.strings=c('NA','NULL'))
+#Soil table
+soil = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Soil')])),na.strings=c('NA','NULL')) %>%
+       dplyr::select(-SAMPLE_NUM) %>%
+       filter(!SAMPLE_ID %in% c('P1','P2','P3','P4','P5','P6')) %>%
+       dplyr::rename(`BOTTLE&KCL` = BOTTLE.KCL,
+                     `BOTTLE&KCL&SOIL` = BOTTLE.KCL.SOIL,
+                     `DRY_SOIL&PAN` = DRY_SOIL.PAN)
+#Grid table
+grid.poly = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Grid_Poly')])),na.strings=c('NA','NULL'))
+```
+
+
+## Create Database
+Establishing a connection to a new SQLite database to house the datasets.
+```{r connect, eval=FALSE}
+seedling.db = dbConnect(RSQLite::SQLite(), "./Data_raw/seedlings.db")
+```
+
+Creating the "Grid" table... I don't actually have some of this data generated yet (SLOPE, ASPECT, SOIL_PARENT_MATERIAL).
+```{r create_grid, eval=FALSE}
+dbExecute(seedling.db, 
+"CREATE TABLE Grid (
+ QUADRAT char(3) NOT NULL,
+ SLOPE double(5,2),
+ ASPECT double(6,2),
+ SOIL_PARENT_MATERIAL char(4),
+ SW_POINT	char(3) NOT NULL,
+ SW_UTM_X	double(8,2) NOT NULL,
+ SW_UTM_Y	double(9,2) NOT NULL,
+ NW_POINT	char(3) NOT NULL,
+ NW_UTM_X	double(8,2) NOT NULL,
+ NW_UTM_Y	double(9,2) NOT NULL,
+ NE_POINT	char(3) NOT NULL,
+ NE_UTM_X	double(8,2) NOT NULL,
+ NE_UTM_Y	double(9,2) NOT NULL,
+ SE_POINT	char(3) NOT NULL,
+ SE_UTM_X	double(8,2) NOT NULL,
+ SE_UTM_Y double(9,2) NOT NULL,
+ PRIMARY KEY (QUADRAT)
+);")
+```
+
+Creating the "Seedling" table... a lot of this stuff will probably go unused.
+```{r create_seed, eval=FALSE}
+dbExecute(seedling.db, 
+"CREATE TABLE Seedling (
+ STEM_TAG char(7) NOT NULL DEFAULT '',
+ TREE_TAG char(7) NOT NULL,
+ CENSUS int(2) NOT NULL,
+ DATE char(8) NOT NULL,
+ QUADRAT char(3) NOT NULL,
+ SPECIES varchar(8) NOT NULL,
+ DBH double(4,1) DEFAULT NULL,
+ DBH_YEAR int(4) NOT NULL,
+ STATUS int(2) DEFAULT '0' NOT NULL,
+ VIGOR int(1) DEFAULT '',
+ DA varchar(3) DEFAULT NULL,
+ MORT_DATE int(4) DEFAULT NULL,
+ DOG_DATE int(4) DEFAULT NULL,
+ SC int(1) DEFAULT '',
+ SNAG_HEIGHT double(4,2) DEFAULT NULL,
+ SNAG_TD double(3,1) DEFAULT NULL,
+ RELATIVE_PLOT_X double(5,2) DEFAULT NULL,
+ RELATIVE_PLOT_Y double(5,2) DEFAULT NULL,
+ SEEDLING_BASAL_DIAM double(4,2) DEFAULT NULL,
+ SEEDLING_HEIGHT double(3,2) DEFAULT NULL,
+ LEANER_ANGLE int(3) DEFAULT NULL,
+ BT varchar(2),
+ DT varchar(2),
+ RT varchar(2),
+ SCAR varchar(2),
+ FRASS varchar(2),
+ PITCH varchar(2),
+ EE varchar(2),
+ MT varchar(2),
+ CONK varchar(16),
+ NEC varchar(2),
+ FLAG varchar(2),
+ SWELL varchar(2),
+ SPRT varchar(9),
+ BFB varchar(2) DEFAULT NULL,
+ OTHER_CODES varchar(20),
+ OTHER_HOM double(3,2) DEFAULT NULL,
+ DIRECTION char(4) DEFAULT NULL,
+ NW char(1) DEFAULT NULL,
+ FIELD_X double(5,2) DEFAULT NULL,
+ FIELD_Y double(5,2) DEFAULT NULL,
+ REFERENCE varchar(7) DEFAULT NULL,
+ DISTANCE double(4,2) DEFAULT NULL,
+ AZIMUTH double(4,1) DEFAULT NULL,
+ PLOT_X double(5,2) DEFAULT NULL,
+ PLOT_Y double(5,2) DEFAULT NULL,
+ UTM_X double(8,2) DEFAULT NULL,
+ UTM_Y double(9,2) DEFAULT NULL,
+ UTM_Z double(6,2) DEFAULT NULL,
+ REMAPPING varchar(80),
+ PREVIOUS_TAGS varchar(24) DEFAULT NULL,
+ COMMENT varchar(255) DEFAULT NULL,
+ PLOT varchar(4) DEFAULT NULL,
+ FIELD_1 varchar(20) NOT NULL,
+ FIELD_2 varchar(20) DEFAULT NULL,
+ FIELD_3 varchar(20) DEFAULT NULL,
+ FIELD_4 varchar(20) DEFAULT NULL,
+ FIELD_5 varchar(20) DEFAULT NULL,
+ DATA_ENTRY_1 varchar(20) DEFAULT NULL,
+ DATA_ENTRY_2 varchar(20) DEFAULT NULL,
+ DATA_CHECK varchar(20) DEFAULT NULL,
+ CTFS_DA char(1),
+ UPDATED char(8) DEFAULT NULL,
+ DNA char(8) DEFAULT NULL,
+ CORED int(4) DEFAULT NULL,
+ COOKIE int(4) DEFAULT NULL,
+ EST_ESTABLISHMENT int(9) DEFAULT NULL,
+ DATABASE_HISTORY varchar(240) NOT NULL,
+ PRIMARY KEY (STEM_TAG,CENSUS)
+ 
+ CONSTRAINT Tree_ibfk_14 FOREIGN KEY (QUADRAT) REFERENCES Grid (QUADRAT)
+);")
+```
+
+Creating "Soil" table.
+```{r create_soil, eval=FALSE}
+dbExecute(seedling.db, 
+"CREATE TABLE Soil (
+ SAMPLE_ID varchar(5) NOT NULL,
+ QUADRAT char(3) NOT NULL,
+ TYPE varchar(16) NOT NULL DEFAULT '',
+ UTM_X double(8,2) DEFAULT NULL,
+ UTM_Y double(9,2) DEFAULT NULL,
+ DESCRIPTION varchar(80) NOT NULL,
+ FIELD_COMMENTS varchar(80) DEFAULT NULL,
+ SURVEY_YEAR char(4) NOT NULL,
+ `BOTTLE&KCL` double(5,2) DEFAULT NULL,
+ `BOTTLE&KCL&SOIL` double(5,2) DEFAULT NULL,
+ EMPTY_PAN double(4,2) DEFAULT NULL,
+ FRESH_SOIL double(5,2) DEFAULT NULL,
+ `DRY_SOIL&PAN` double(5,2) DEFAULT NULL,
+ DRY_SOIL double(5,2) DEFAULT NULL,
+ DRY_WT double(5,2) DEFAULT NULL,
+ DRY_SOIL_IN_KCL double(5,2) DEFAULT NULL,
+ SOLUTION_VOL double(5,2) DEFAULT NULL,
+ NH4_mg_N_per_L double(5,2) DEFAULT NULL,
+ NO3_mg_N_per_L double(5,2) DEFAULT NULL,
+ pH_water double(3,2) DEFAULT NULL,
+ pH_CaCl2 double(3,2) DEFAULT NULL,
+ pH_BaCl2 double(3,2) DEFAULT NULL,
+ BrayP_mg_per_kg double(7,4) DEFAULT NULL,
+ NH4_mgN_per_kg double(6,4) DEFAULT NULL,
+ NO3_mgN_per_kg double(6,4) DEFAULT NULL,
+ Inorg_N_mgN_per_kg double(6,4) DEFAULT NULL,
+ Al_mg_per_kg double(7,4) DEFAULT NULL,
+ Ca_mg_per_kg double(7,2) DEFAULT NULL,
+ Fe_mg_per_kg double(6,4) DEFAULT NULL,
+ K_mg_per_kg double(7,2) DEFAULT NULL,
+ Mg_mg_per_kg double(7,2) DEFAULT NULL,
+ Mn_mg_per_kg double(7,4) DEFAULT NULL,
+ Na_mg_per_kg double(7,4) DEFAULT NULL,
+ Al_cmolc_per_kg double(5,4) DEFAULT NULL,
+ Ca_cmolc_per_kg double(7,4) DEFAULT NULL,
+ Fe_cmolc_per_kg double(5,4) DEFAULT NULL,
+ K_cmolc_per_kg double(5,4) DEFAULT NULL,
+ Mg_cmolc_per_kg double(6,4) DEFAULT NULL,
+ Mn_cmolc_per_kg double(5,4) DEFAULT NULL,
+ Na_cmolc_per_kg double(5,4) DEFAULT NULL,
+ TEB_cmolc_per_kg double(6,3) DEFAULT NULL,
+ ECEC_cmolc_per_kg double(6,3) DEFAULT NULL,
+ Base_sat_percent double(6,3) DEFAULT NULL,
+ Al_sat_percent double(6,3) DEFAULT NULL,
+ Ca_to_Mg_ratio double(6,3) DEFAULT NULL,
+ PRIMARY KEY (SAMPLE_ID)
+)"
+)
+```
+
+Creating "Mortality" table.
+```{r create_mort, eval=FALSE}
+dbExecute(seedling.db,
+"CREATE TABLE Mortality (
+ STEM_TAG char(7) NOT NULL,
+ QUADRAT char(3) NOT NULL,
+ SPECIES varchar(8) NOT NULL,
+ DATE char(8) NOT NULL,
+ CENSUS int(2) NOT NULL,
+ DBH decimal(4,1) DEFAULT NULL,
+ ROOT int(1) DEFAULT NULL,
+ STEM int(1) DEFAULT NULL,
+ SNAG_HEIGHT decimal(4,2) DEFAULT NULL,
+ SNAG_TD double(2,0) DEFAULT NULL,
+ CROWN_P int(3) DEFAULT NULL,
+ TREE_P int(3) DEFAULT NULL,
+ ANGLE int(3) DEFAULT NULL,
+ GROUND_P int(3) DEFAULT NULL,
+ SUPPORT_P int(3) DEFAULT NULL,
+ CC1 varchar(2) DEFAULT NULL,
+ CC2 varchar(2) DEFAULT NULL,
+ CC3 varchar(2) DEFAULT NULL,
+ CC4 varchar(2) DEFAULT NULL,
+ CC5 varchar(2) DEFAULT NULL,
+ FAD1 varchar(5),
+ FAD2 varchar(5),
+ FAD3 varchar(5),
+ FAD4 varchar(5),
+ FAD5 varchar(5),
+ COMMENT varchar(400) DEFAULT NULL,
+ DALB_DATE varchar(9) DEFAULT NULL,
+ FIELD_1 varchar(20) DEFAULT NULL,
+ FIELD_2 varchar(20) DEFAULT NULL,
+ FIELD_3 varchar(20) DEFAULT NULL,
+ FIELD_4 varchar(20) DEFAULT NULL,
+ FIELD_5 varchar(20) DEFAULT NULL,
+ DATA_ENTRY_1 varchar(20) DEFAULT NULL,
+ DATA_ENTRY_2 varchar(20) DEFAULT NULL,
+ DATA_CHECK_1 varchar(20) DEFAULT NULL,
+ DATA_CHECK_2 varchar(20) DEFAULT NULL,
+ UPDATED char(8) NOT NULL,
+ PRIMARY KEY (STEM_TAG),
+ CONSTRAINT Mortality_ibfk_1 FOREIGN KEY (STEM_TAG) REFERENCES Seedling (STEM_TAG),
+ CONSTRAINT Mortality_ibfk_17 FOREIGN KEY (QUADRAT) REFERENCES Grid (QUADRAT)
+);"
+)
+```
+
+Now we want to fill the empty database with data.
+```{r fill, eval=FALSE}
+dbWriteTable(seedling.db, "Grid", grid.poly, append = TRUE)
+dbWriteTable(seedling.db, "Seedling", seed.raw, append = TRUE)
+dbWriteTable(seedling.db, "Mortality", mort.raw, append = TRUE)
+dbWriteTable(seedling.db, "Soil", soil, append = TRUE)
+```
+
+And we now have a functioning SQL database created in R!
+
+
+
+
+<!--chapter:end:01-Database_Creation.Rmd-->
+
+---
+title: "Raw Data Cleaning"
+author: "Soren Struckman"
+date: "4/26/2021"
+output: html_document
+---
+
+
+# Initialization
+```{r package_load2, message=F}
+library(tidyverse)
+```
+
+```{r function_load, message=F}
+`%notin%` = Negate(`%in%`)
+```
+
+
+# Data Import
+```{r import2}
+## Load tabular data
+
+#Seedling table
+seed.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Seedling')])),na.strings=c('NA','NULL'))
+#Mortality table
+mort.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Mort_')])),na.strings=c('NA','NULL'))
+#Soil table
+soil = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Soil')])),na.strings=c('NA','NULL')) %>%
+       dplyr::select(-SAMPLE_NUM) %>%
+       filter(SAMPLE_ID %notin% c('P1','P2','P3','P4','P5','P6')) %>%
+       dplyr::rename(`BOTTLE&KCL` = BOTTLE.KCL,
+                     `BOTTLE&KCL&SOIL` = BOTTLE.KCL.SOIL,
+                     `DRY_SOIL&PAN` = DRY_SOIL.PAN)
+#Grid table
+grid.poly = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Grid_Poly')])),na.strings=c('NA','NULL'))
+```
+
+
+# Data Cleaning
+## Seedling
+Let's make a new data.frame to store the clean data. This way, we can make changes to that without messing with the raw data at all.
+```{r}
+seed = seed.raw
+```
+
+There are several columns in this dataset that are remnants of the upstream data source and are not applicable/useful for dealing with seedlings. We can remove them.
+```{r}
+#extract any columns that are entirely empty and remove them
+tmp = c()
+for (i in colnames(seed)){
+     if(sum(!is.na(seed[,i])) == 0){
+          tmp = c(tmp,i)
+     }
+}
+seed = seed %>% dplyr::select(-all_of(tmp))
+```
+
+FLAG, PLOT, CTFS_DA, CORED, DATA_ENTRY, DATA_CHECK, and some of the original mapping variables are also irrelevant or redundant, so we will remove them too.
+```{r}
+seed = seed %>% dplyr::select((-c(FLAG, PLOT, CTFS_DA, CORED, DATA_ENTRY_1, DATA_ENTRY_2, DATA_CHECK, 
+                                  REFERENCE, DISTANCE, AZIMUTH, PLOT_X, PLOT_Y, FIELD_X, FIELD_Y)))
+```
+
+There are some "seedlings" in this dataset that were large enough to have a DBH>=1 (thus qualifying them as a full tree, and not a seedling) and were that size when they entered the dataset (either when the plot was established or when that stem was found and tagged). I believe seedling data was taken on these in order to construct models to relate basal diameter (DBA or BD) and diameter at breast height (DBH). We want to keep these somewhere to show those relationships, but not in the main dataset that we will use for the other analyses, so let's put them in their own file.
+```{r}
+tmp = seed %>% 
+        group_by(STEM_TAG) %>% 
+        mutate(CENSUS_ENTRIES = str_c(CENSUS, collapse='-')) %>% 
+        # selects all the stems whose first measurement in the study was DBH=1+
+        filter((CENSUS==1 & DBH>=1) | 
+                (!str_detect(CENSUS_ENTRIES, pattern='1') & CENSUS!=6 & DBH>=1) | 
+                (CENSUS_ENTRIES=='6' & DBH>=1))
+        
+#partitions all the data for those stem tags into a new dataset
+saplings = seed %>% filter(STEM_TAG %in% tmp$STEM_TAG)
+seed = seed %>% filter(STEM_TAG %notin% tmp$STEM_TAG)
+```
+
+### Export
+```{r, eval=FALSE}
+write.csv(saplings, paste0('./Data_clean/Sapling_clean_',format(Sys.time(), "%Y%m%d"),'.csv'))
+write.csv(seed, paste0('./Data_clean/Seedling_clean_',format(Sys.time(), "%Y%m%d"),'.csv'))
+```
+
+
+## Mortality
+A few of the saplings also have since died, so we should remove them from the mortality data. Other than that, this data is already pretty clean.
+```{r}
+mort = mort.raw %>% filter(STEM_TAG %notin% tmp$STEM_TAG)
+```
+
+### Export
+```{r, eval=FALSE}
+write.csv(mort, paste0('./Data_clean/Mort_clean_',format(Sys.time(), "%Y%m%d"),'.csv'))
+```
+
+
+# Grid Physical Data Derivation
+```{r}
+#add in UTM_Z from grid table...
+
+#add in placeholder points with estimated elevations
+
+#quadrat elevation will just be the average of the 4 points 
+
+#compute slope and aspect based on corners and a bunch of triangles
+```
+
+
+<!--chapter:end:02-Data_Cleaning.Rmd-->
+
+# Introduction {#intro}
+
+You can label chapter and section titles using `{#label}` after them, e.g., we can reference Chapter \@ref(intro). If you do not manually label them, there will be automatic labels anyway, e.g., Chapter \@ref(methods).
+
+Figures and tables with captions will be placed in `figure` and `table` environments, respectively.
+
+```{r nice-fig, fig.cap='Here is a nice figure!', out.width='80%', fig.asp=.75, fig.align='center'}
+# par(mar = c(4, 4, .1, .1))
+# plot(pressure, type = 'b', pch = 19)
+```
+
+Reference a figure by its code chunk label with the `fig:` prefix, e.g., see Figure \@ref(fig:nice-fig). Similarly, you can reference tables generated from `knitr::kable()`, e.g., see Table \@ref(tab:nice-tab).
+
+```{r nice-tab, tidy=FALSE}
+knitr::kable(
+  head(iris, 20), caption = 'Here is a nice table!',
+  booktabs = TRUE
+)
+```
+
+You can write citations, too. For example, we are using the **bookdown** package [@R-bookdown] in this sample book, which was built on top of R Markdown and **knitr** [@xie2015].
+
+<!--chapter:end:intro.Rmd-->
+

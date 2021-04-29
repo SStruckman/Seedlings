@@ -1,0 +1,42 @@
+---
+title: "Raw Data Precleaning"
+author: "Soren Struckman"
+date: "3/2/2021"
+output: html_document
+---
+
+
+# Initialization
+```{r package_load, message=F}
+library(tidyverse)
+```
+
+
+# Data
+## Import and Extract
+```{r import}
+## Load tree table
+tree.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Tree')])),na.strings='NULL') %>% 
+          mutate(QUADRAT = case_when(STEM_TAG %in% c('36-0844','36-0500','36-9001','36-9002','36-9003','36-9004','36-9005','36-9006','36-9007') ~ 'Q36',
+                                     STEM_TAG %in% c('39-0206') ~ 'Q39', # these trees are on cliffs and were mapped in the adjacent cell from their physical location
+                                     TRUE ~ as.character(QUADRAT)))
+
+mort.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Mortality')])),na.strings='NULL') %>% 
+          mutate(QUADRAT = case_when(STEM_TAG %in% c('36-0844','36-0500','36-9001','36-9002','36-9003','36-9004','36-9005','36-9006','36-9007') ~ 'Q36',
+                                     STEM_TAG %in% c('39-0206') ~ 'Q39', 
+                                     TRUE ~ as.character(QUADRAT)))
+```
+
+```{r extract}
+#extract all Pinus seedlings
+tree.seed = filter(tree.raw, (!is.na(SEEDLING_BASAL_DIAM) | !is.na(SEEDLING_HEIGHT)) & SPECIES %in% c('PIFL','PILO','PIED','PIPO'))
+
+mort.seed = filter(mort.raw, STEM_TAG %in% tree.seed$STEM_TAG)
+```
+
+# Output
+```{r}
+write.csv(tree.seed, paste0('./Data_raw/ufdp_Seedling_', format(Sys.time(), "%Y%m%d"), '.csv'), row.names=F)
+write.csv(mort.seed, paste0('./Data_raw/ufdp_Mort_', format(Sys.time(), "%Y%m%d"), '.csv'), row.names=F)
+```
+

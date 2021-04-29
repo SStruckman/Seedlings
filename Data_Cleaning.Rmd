@@ -1,0 +1,108 @@
+---
+title: "Raw Data Cleaning"
+author: "Soren Struckman"
+date: "4/26/2021"
+output: html_document
+---
+
+
+# Initialization
+```{r package_load, message=F}
+library(tidyverse)
+```
+
+```{r function_load, message=F}
+`%notin%` = Negate(`%in%`)
+```
+
+
+# Data Import
+```{r import}
+## Load tabular data
+
+#Seedling table
+seed.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Seedling')])),na.strings=c('NA','NULL'))
+#Mortality table
+mort.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Mort_')])),na.strings=c('NA','NULL'))
+#Soil table
+soil = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Soil')])),na.strings=c('NA','NULL')) %>%
+       dplyr::select(-SAMPLE_NUM) %>%
+       filter(SAMPLE_ID %notin% c('P1','P2','P3','P4','P5','P6')) %>%
+       dplyr::rename(`BOTTLE&KCL` = BOTTLE.KCL,
+                     `BOTTLE&KCL&SOIL` = BOTTLE.KCL.SOIL,
+                     `DRY_SOIL&PAN` = DRY_SOIL.PAN)
+#Grid table
+grid.poly = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Grid_Poly')])),na.strings=c('NA','NULL'))
+```
+
+
+# Data Cleaning
+## Seedling
+Let's make a new data.frame to store the clean data. This way, we can make changes to that without messing with the raw data at all.
+```{r}
+seed = seed.raw
+```
+
+There are several columns in this dataset that are remnants of the upstream data source and are not applicable/useful for dealing with seedlings. We can remove them.
+```{r}
+#extract any columns that are entirely empty and remove them
+tmp = c()
+for (i in colnames(seed)){
+     if(sum(!is.na(seed[,i])) == 0){
+          tmp = c(tmp,i)
+     }
+}
+seed = seed %>% dplyr::select(-all_of(tmp))
+```
+
+FLAG, PLOT, CTFS_DA, CORED, DATA_ENTRY, DATA_CHECK, and some of the original mapping variables are also irrelevant or redundant, so we will remove them too.
+```{r}
+seed = seed %>% dplyr::select((-c(FLAG, PLOT, CTFS_DA, CORED, DATA_ENTRY_1, DATA_ENTRY_2, DATA_CHECK, 
+                                  REFERENCE, DISTANCE, AZIMUTH, PLOT_X, PLOT_Y, FIELD_X, FIELD_Y)))
+```
+
+There are some "seedlings" in this dataset that were large enough to have a DBH>=1 (thus qualifying them as a full tree, and not a seedling) and were that size when they entered the dataset (either when the plot was established or when that stem was found and tagged). I believe seedling data was taken on these in order to construct models to relate basal diameter (DBA or BD) and diameter at breast height (DBH). We want to keep these somewhere to show those relationships, but not in the main dataset that we will use for the other analyses, so let's put them in their own file.
+```{r}
+tmp = seed %>% 
+        group_by(STEM_TAG) %>% 
+        mutate(CENSUS_ENTRIES = str_c(CENSUS, collapse='-')) %>% 
+        # selects all the stems whose first measurement in the study was DBH=1+
+        filter((CENSUS==1 & DBH>=1) | 
+                (!str_detect(CENSUS_ENTRIES, pattern='1') & CENSUS!=6 & DBH>=1) | 
+                (CENSUS_ENTRIES=='6' & DBH>=1))
+        
+#partitions all the data for those stem tags into a new dataset
+saplings = seed %>% filter(STEM_TAG %in% tmp$STEM_TAG)
+seed = seed %>% filter(STEM_TAG %notin% tmp$STEM_TAG)
+```
+
+### Export
+```{r, eval=FALSE}
+write.csv(saplings, paste0('./Data_clean/Sapling_clean_',format(Sys.time(), "%Y%m%d"),'.csv'))
+write.csv(seed, paste0('./Data_clean/Seedling_clean_',format(Sys.time(), "%Y%m%d"),'.csv'))
+```
+
+
+## Mortality
+A few of the saplings also have since died, so we should remove them from the mortality data. Other than that, this data is already pretty clean.
+```{r}
+mort = mort.raw %>% filter(STEM_TAG %notin% tmp$STEM_TAG)
+```
+
+### Export
+```{r, eval=FALSE}
+write.csv(mort, paste0('./Data_clean/Mort_clean_',format(Sys.time(), "%Y%m%d"),'.csv'))
+```
+
+
+# Grid Physical Data Derivation
+```{r}
+#add in UTM_Z from grid table...
+
+#add in placeholder points with estimated elevations
+
+#quadrat elevation will just be the average of the 4 points 
+
+#compute slope and aspect based on corners and a bunch of triangles
+```
+

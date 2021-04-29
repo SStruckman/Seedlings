@@ -11,7 +11,7 @@ For this project, I will be using data collected on _Pinus_ seedlings within the
 
 The 15 ha plot is set up on a 20-m grid and all _Pinus_ seedlings are mapped, tagged, and censused annually for mortality. The physical environment of this plot is also well-documented, with data to construct complete topographical and soil profiles at the level of the grid cell (referred to as "quadrats").
 
-the data is contained in 4 tables sinplified below:
+the data is contained in 4 tables simplified below:
 
 
 ```{r image, echo=FALSE, fig.align='center', out.width='75%'}
@@ -21,7 +21,7 @@ knitr::include_graphics("Database_structure.png")
 * `Seedling` contains data on individual seedlings and their demographic data. It is organized with a composite primary key of STEM_TAG and CENSUS, and thus has multiple measurements for each individual seedling associated with a unique STEM_TAG. *NOTE: this is not the most efficient structure, but I am working within constraints of existing workflows that are set up this way.*
 * `Mortality` contains measurement and mortality data associated with a seedling when it dies. It is uniquely identified by STEM_TAG and seedlings are only present in this table after they have died.
 * `Grid` contains positional/topographical data about each quadrat within the plot grid. It is uniquely identified by QUADRAT (grid_cell).
-* `Soil` contains data on individual soil chemical measurements from samples takent throughout the plot. It is uniquely identified by SAMPLE_ID and relates back to `Grid` by what QUADRAT the sample was taken in.
+* `Soil` contains data on individual soil chemical measurements from samples taken throughout the plot. It is uniquely identified by SAMPLE_ID and relates back to `Grid` by what QUADRAT the sample was taken in.
 
 The data presented here are a small subset of the entire data workflow of the plot, and there is an existing SQL database structure and regular updates to upstream data, so the database inherits some peculiarities as a result of removing the seedlings from the context of all the adult trees.
 
@@ -40,18 +40,18 @@ library(RSQLite)
 ## Load tabular data
 
 #Seedling table
-seed.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Seedling')])),na.strings='NULL')
+seed.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Seedling')])),na.strings=c('NA','NULL'))
 #Mortality table
-mort.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Mort_')])),na.strings='NULL')
+mort.raw = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Mort_')])),na.strings=c('NA','NULL'))
 #Soil table
-soil = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Soil')])),na.strings='NULL') %>%
+soil = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Soil')])),na.strings=c('NA','NULL')) %>%
        dplyr::select(-SAMPLE_NUM) %>%
        filter(!SAMPLE_ID %in% c('P1','P2','P3','P4','P5','P6')) %>%
        dplyr::rename(`BOTTLE&KCL` = BOTTLE.KCL,
                      `BOTTLE&KCL&SOIL` = BOTTLE.KCL.SOIL,
                      `DRY_SOIL&PAN` = DRY_SOIL.PAN)
 #Grid table
-grid.poly = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Grid_Poly')])),na.strings='NULL')
+grid.poly = read.csv(paste0('./Data_raw/',max(dir('./Data_raw')[grepl(dir('./Data_raw/'),pattern = 'Grid_Poly')])),na.strings=c('NA','NULL'))
 ```
 
 
@@ -61,7 +61,7 @@ Establishing a connection to a new SQLite database to house the datasets.
 seedling.db = dbConnect(RSQLite::SQLite(), "./Data_raw/seedlings.db")
 ```
 
-Creating the "Grid" table... I don't actally have some of this data generated yet (SLOPE, ASPECT, SOIL_PARENT_MATERIAL).
+Creating the "Grid" table... I don't actually have some of this data generated yet (SLOPE, ASPECT, SOIL_PARENT_MATERIAL).
 ```{r create_grid, eval=FALSE}
 dbExecute(seedling.db, 
 "CREATE TABLE Grid (
@@ -241,11 +241,11 @@ dbExecute(seedling.db,
  CC3 varchar(2) DEFAULT NULL,
  CC4 varchar(2) DEFAULT NULL,
  CC5 varchar(2) DEFAULT NULL,
- FAD1 varchar(5) NOT NULL DEFAULT '0',
- FAD2 varchar(5) NOT NULL DEFAULT '0',
- FAD3 varchar(5) NOT NULL DEFAULT '0',
- FAD4 varchar(5) NOT NULL DEFAULT '0',
- FAD5 varchar(5) NOT NULL DEFAULT '0',
+ FAD1 varchar(5),
+ FAD2 varchar(5),
+ FAD3 varchar(5),
+ FAD4 varchar(5),
+ FAD5 varchar(5),
  COMMENT varchar(400) DEFAULT NULL,
  DALB_DATE varchar(9) DEFAULT NULL,
  FIELD_1 varchar(20) DEFAULT NULL,
@@ -269,7 +269,7 @@ Now we want to fill the empty database with data.
 ```{r fill, eval=FALSE}
 dbWriteTable(seedling.db, "Grid", grid.poly, append = TRUE)
 dbWriteTable(seedling.db, "Seedling", seed.raw, append = TRUE)
-dbWriteTable(seedling.db, "Mort", mort.raw, append = TRUE)
+dbWriteTable(seedling.db, "Mortality", mort.raw, append = TRUE)
 dbWriteTable(seedling.db, "Soil", soil, append = TRUE)
 ```
 

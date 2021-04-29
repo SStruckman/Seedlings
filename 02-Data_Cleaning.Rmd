@@ -7,7 +7,7 @@ output: html_document
 
 
 # Initialization
-```{r package_load, message=F}
+```{r package_load2, message=F}
 library(tidyverse)
 ```
 
@@ -17,7 +17,7 @@ library(tidyverse)
 
 
 # Data Import
-```{r import}
+```{r import2}
 ## Load tabular data
 
 #Seedling table

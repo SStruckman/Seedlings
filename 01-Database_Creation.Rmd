@@ -15,7 +15,7 @@ the data is contained in 4 tables simplified below:
 
 
 ```{r image, echo=FALSE, fig.align='center', out.width='75%'}
-knitr::include_graphics("Database_structure.png")
+knitr::include_graphics("./Documents/Database_structure.png")
 ```
 
 * `Seedling` contains data on individual seedlings and their demographic data. It is organized with a composite primary key of STEM_TAG and CENSUS, and thus has multiple measurements for each individual seedling associated with a unique STEM_TAG. *NOTE: this is not the most efficient structure, but I am working within constraints of existing workflows that are set up this way.*
@@ -28,7 +28,7 @@ The data presented here are a small subset of the entire data workflow of the pl
 
 # Database Creation
 ## Initialization
-```{r package_load, message=F}
+```{r package_load1, message=F}
 library(tidyverse)
 library(DBI)
 library(RSQLite)
@@ -36,7 +36,7 @@ library(RSQLite)
 
 
 ## Import Data
-```{r import}
+```{r import1}
 ## Load tabular data
 
 #Seedling table
